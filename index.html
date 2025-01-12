@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplified Decision Tree</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        #question {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        .button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="js-yaml.min.js"></script>
+</head>
+<body>
+
+<h1>Simplified Decision Tree</h1>
+
+<div id="question"></div>
+<div id="options"></div>
+
+<script>
+// Define the decision tree using compact YAML format
+const decisionTreeYAML = `- question: "Sodio <135 meq/L"
+  options:
+    - text: "SI"
+      next:
+        question: "¿Tiene hiperglucemia?"
+        options:
+          - text: "SI"
+            next:
+              question: "Calcular sodio corregido"
+              options:
+                - text: "= o >135 meq/L"
+                  next:
+                    question: "Hiponatremia inducida por hiperglucemia"
+                    options: []
+                - text: "<135 meq/L"
+                  next:
+                    question: "¿Existen solutos añadidos en suero?, ¿cursa postoperatorio de cirugía uterina o prostática?, ¿Ha recibido infusiones de manitol o IVIG?"
+                    options:
+                      - text: "SI"
+                        next:
+                          question: "Calcular osmolalidad plasmática"
+                          options:
+                            - text: "< 280 mosmol/kg"
+                              next:
+                                question: "Hiponatremia hipotónica, ¿El filtrado glomerular está sustancialmente disminuido?"
+                                options: []
+                            - text: "> 280 mosmol/kg"
+                              next:
+                                question: "Hiponatremia iso-osmolar o hiperosmolar, histerectomía o TURP puede estar asociado a absorción de solutos como glicina o sorbitol. Los pacientes con sospecha de pseudohiponatremia deberían tener sodio dosado por potenciometría directa, si está normal dosar proteínas totales y lípidos"
+                                options: []
+                      - text: "NO"
+                        next:
+                          question: "Hiponatremia hipotónica, ¿El filtrado glomerular está sustancialmente disminuido?"
+                          options:
+                            - text: "NO"
+                              next:
+                                question: "¿Utiliza diuréticos tiazídicos?"
+                                options:
+                                  - text: "SI"
+                                    next:
+                                      question: "!"
+                                      options: []
+                            - text: "SI"
+                              next:
+                                question: "!"
+                                options: []
+          - text: "NO"
+            next:
+              question: "Can you get one?"
+              options:
+                - text: "Yes"
+                  next:
+                    question: "Then go."
+                    options: []
+                - text: "No"
+                  next:
+                    question: "Then don't go."
+                    options: []
+    - text: "NO"
+      next:
+        question: "No tiene hiponatremia"
+        options: []
+`;
+
+// Parse the YAML string into a JavaScript object
+const decisionTree = jsyaml.load(decisionTreeYAML);
+let currentNode = decisionTree;
+
+function displayQuestion() {
+    document.getElementById('question').innerText = currentNode.question;
+    const optionsDiv = document.getElementById('options');
+    optionsDiv.innerHTML = '';
+
+    currentNode.options.forEach((option) => {
+        const button = document.createElement('button');
+        button.innerText = option.text;
+        button.className = 'button';
+        button.onclick = () => handleOptionClick(option.next);
+        optionsDiv.appendChild(button);
+    });
+}
+
+function handleOptionClick(nextNode) {
+    if (nextNode) {
+        currentNode = nextNode; // Move to the next node
+        displayQuestion();
+    } else {
+        document.getElementById('question').innerText = "The end."; // End message
+        document.getElementById('options').innerHTML = '';
+    }
+}
+
+// Start the decision tree
+displayQuestion();
+</script>
+
+</body>
+</html>
